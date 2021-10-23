@@ -1,0 +1,35 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  cd:
+    name: CD
+    runs-on: ubuntu-latest
+    env:
+      MIX_ENV: prod
+      SECRET_KEY_BASE: ${{ secrets.SECRET_KEY_BASE }}
+
+    steps:
+      - name: install erlang and elixir
+        id: setup-beam
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "24.1"
+          elixir-version: "1.12.2"
+      - name: checkout repository
+        uses: actions/checkout@v2
+      - name: get dependencies
+        run: |
+          mix deps.get --only prod
+          mix deps.compile
+      - name: compile assets
+        run: mix assets.deploy
+      - name: release
+        run: mix release
+
+
+
